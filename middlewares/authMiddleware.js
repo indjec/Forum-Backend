@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   let token;
 
   if (
@@ -9,18 +10,21 @@ const protect = (req, res, next) => {
   ) {
     try {
       token = req.headers.authorization.split(" ")[1];
-      if (token) {
-        jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Token verified");
-        next();
-      } else {
-        console.log("Token failes");
-      }
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findOne({
+        where: { id: decoded.id },
+        attributes: { exclude: ["password"] },
+      });
+      next();
     } catch (e) {
-      res.status(401);
-      res.send("User not authorized");
+      // res.status(401);
+      console.log("User not authorized");
       throw new Error("User not authorized");
     }
+  }
+  if (!token) {
+    res.status(401);
+    res.json({ message: "User not authorized" });
   }
 };
 

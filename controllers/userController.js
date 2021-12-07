@@ -50,7 +50,7 @@ const authUser = async (req, res) => {
 };
 
 const testProtect = async (req, res) => {
-  console.log(req.me);
+  console.log(`User from deodedid  ======= .>>> ${req.user.name}`);
   res.send("Token verified");
 };
 

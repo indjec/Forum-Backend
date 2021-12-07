@@ -3,8 +3,6 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const { DataTypes } = require("sequelize");
 import sequelize from "../config/db.js";
-import User from "./userModel.js";
-import { Forum } from "./forumModel.js";
 
 const Like = sequelize.define("Like", {
   id: {

@@ -6,9 +6,10 @@ import Like from "../models/likeModel.js";
 // @route /api/forums
 // @access Private
 const postForums = async (req, res) => {
-  const { title, UserId } = req.body;
+  const user_id = req.user.id;
+  const { title } = req.body;
   const slug = await generateSlug(title);
-  await Forum.create({ title, UserId, slug });
+  await Forum.create({ title, user_id, slug });
   res.json({
     success: true,
     message: "Forum saved successfully",
@@ -21,7 +22,7 @@ const postForums = async (req, res) => {
 const getForums = async (req, res) => {
   const forums = await Forum.findAll({
     include: [{ model: User, attributes: ["name", "avatar", "email", "bio"] }],
-    attributes: { exclude: ["UserId"] },
+    attributes: { exclude: ["user_id"] },
   });
   console.log(forums);
   res.json(forums);
@@ -40,12 +41,15 @@ const getForumBySlug = async (req, res) => {
 // @route /api/forums/:id/like
 // @access Private
 const likeForum = async (req, res) => {
-  const like = req.body.like;
-  const unLike = req.body.un_like;
-  const id = req.params.id;
-  const likes = await Like.create({ like, unLike });
-
-  res.json("Likeeeeedd");
+  const { like, unlike } = req.body;
+  const forum_id = req.params.id;
+  const user_id = req.user.id;
+  try {
+    const result = await Like.create({ like, unlike, user_id, forum_id });
+    res.json(result);
+  } catch (e) {
+    res.json({ message: e.message });
+  }
 };
 // const likeForum = async (req, res) => {
 //   const like = req.body.like == true ? 1 : 0;
