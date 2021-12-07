@@ -1,43 +1,57 @@
 import bcrypt from "bcryptjs";
-import { pool } from "../config/db.js";
 import generateToken from "../utils/generateToken.js";
+import User from "../models/userModel.js";
 
-const registerUser = (req, res) => {
-  const { name, email, password } = req.body;
-  pool.query(
-    "SELECT username FROM users WHERE username=?",
-    [email],
-    (err, row) => {
-      if (err) throw err;
-      if (row[0]) {
-        res.json({ data: "User already exists" });
-      } else {
-        bcrypt.hash(password, 10, (err, hash) => {
-          pool.query(
-            "INSERT INTO users (name, username, password) VALUES (?, ?, ?)",
-            [name, email, hash],
-            (err, row) => {
-              if (err) throw err;
-              console.log("Successfully created user");
-              res.json({ success: true, token: generateToken(email) });
-            }
-          );
-        });
-      }
-    }
-  );
-};
-
-const authUser = (req, res) => {
-  const { email, password } = req.body;
-  pool.query("SELECT * FROM users WHERE username=?", [email], (err, row) => {
-    if (err) throw err;
-    res.json({
-      success: true,
-      username: row[0].username,
-      token: generateToken(row[0].username),
-    });
+// @desc   Post User Register
+// @route /api/users
+// @access Public
+const registerUser = async (req, res) => {
+  const { name, email, password, avatar, bio } = req.body;
+  const hash = await bcrypt.hash(password, 10);
+  const user = await User.findOne({
+    where: { email },
+    attributes: { exclude: ["password"] },
   });
+  if (user) {
+    res.json({ data: "User already exists" });
+  } else {
+    const createdUser = await User.create({
+      name,
+      email,
+      password: hash,
+      avatar,
+      bio,
+    });
+    const returnUser = { ...createdUser.dataValues };
+    delete returnUser.password;
+    res.json({ ...returnUser, token: generateToken(returnUser.id) });
+  }
 };
 
-export { registerUser, authUser };
+// @desc   POST User Login
+// @route  /api/users/login
+// @access Private
+const authUser = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({
+    where: { email },
+  });
+
+  if (user && (await user.matchPassword(password))) {
+    const returnUser = { ...user.dataValues };
+    delete returnUser.password;
+    res.json({ ...returnUser, token: generateToken(user.id) });
+  } else {
+    res.json({
+      success: false,
+      message: "User Login failed",
+    });
+  }
+};
+
+const testProtect = async (req, res) => {
+  console.log(req.me);
+  res.send("Token verified");
+};
+
+export { registerUser, authUser, testProtect };
