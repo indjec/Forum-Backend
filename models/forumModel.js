@@ -4,6 +4,8 @@ const require = createRequire(import.meta.url);
 const { DataTypes } = require("sequelize");
 import sequelize from "../config/db.js";
 import User from "../models/userModel.js";
+import Like from "../models/likeModel.js";
+
 import slugify from "slugify";
 import { nanoid } from "nanoid";
 
@@ -27,18 +29,14 @@ const Forum = sequelize.define("Forum", {
   thumbnail: {
     type: DataTypes.STRING,
   },
-  like: {
-    type: DataTypes.BOOLEAN,
-  },
-  unlike: {
-    type: DataTypes.BOOLEAN,
-  },
   bookmark: {
     type: DataTypes.BOOLEAN,
   },
 });
 
-Forum.belongsTo(User);
+Forum.belongsTo(User, { foreignKey: "user_id" });
+User.belongsToMany(Forum, { through: Like, foreignKey: "user_id" });
+Forum.belongsToMany(User, { through: Like, foreignKey: "forum_id" });
 
 const generateSlug = (title) => {
   return new Promise(async (resolve, reject) => {

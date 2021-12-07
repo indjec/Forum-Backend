@@ -4,6 +4,8 @@ const require = createRequire(import.meta.url);
 const { DataTypes } = require("sequelize");
 import sequelize from "../config/db.js";
 import bcrypt from "bcryptjs";
+import { Forum } from "./forumModel.js";
+import Like from "./likeModel.js";
 
 const User = sequelize.define("User", {
   id: {

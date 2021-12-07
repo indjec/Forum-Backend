@@ -1,5 +1,6 @@
 import { Forum, generateSlug } from "../models/forumModel.js";
 import User from "../models/userModel.js";
+import Like from "../models/likeModel.js";
 
 // @desc Post forum
 // @route /api/forums
@@ -7,7 +8,7 @@ import User from "../models/userModel.js";
 const postForums = async (req, res) => {
   const { title, UserId } = req.body;
   const slug = await generateSlug(title);
-  const forum = await Forum.create({ title, UserId, slug });
+  await Forum.create({ title, UserId, slug });
   res.json({
     success: true,
     message: "Forum saved successfully",
@@ -38,6 +39,14 @@ const getForumBySlug = async (req, res) => {
 // @desc   Post forum Like
 // @route /api/forums/:id/like
 // @access Private
+const likeForum = async (req, res) => {
+  const like = req.body.like;
+  const unLike = req.body.un_like;
+  const id = req.params.id;
+  const likes = await Like.create({ like, unLike });
+
+  res.json("Likeeeeedd");
+};
 // const likeForum = async (req, res) => {
 //   const like = req.body.like == true ? 1 : 0;
 //   const unLike = req.body.un_like == true ? 1 : 0;
@@ -59,4 +68,4 @@ const getForumBySlug = async (req, res) => {
 //   );
 // };
 
-export { postForums, getForums, getForumBySlug };
+export { postForums, getForums, getForumBySlug, likeForum };
